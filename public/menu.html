@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu — La Belle Époque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .menu-hero {
+      background: linear-gradient(rgba(20,18,15,0.7), rgba(20,18,15,0.7)),
+                  url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600') center/cover;
+      color: var(--cream);
+      padding: 8rem 8vw 6rem;
+      text-align: center;
+    }
+    .menu-hero h1 { font-size: clamp(3rem, 6vw, 4.5rem); margin-bottom: 1rem; }
+    .menu-hero p { color: rgba(248,244,236,0.85); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 3rem 8vw 1rem;
+    }
+    .filters button {
+      padding: 0.7rem 1.6rem;
+      background: transparent;
+      border: 1px solid var(--line);
+      font-family: inherit;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filters button:hover { border-color: var(--gold); color: var(--gold); }
+    .filters button.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--ink);
+    }
+
+    .menu-section { padding: 2rem 8vw 6rem; max-width: 1100px; margin: 0 auto; }
+    .menu-category { margin-bottom: 4rem; }
+    .menu-category h2 {
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 0.75rem;
+      margin-bottom: 2rem;
+      display: inline-block;
+    }
+
+    .menu-item {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.25rem 0;
+      border-bottom: 1px dashed var(--line);
+      transition: transform 0.2s;
+    }
+    .menu-item:hover { transform: translateX(4px); }
+
+    .menu-item img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: var(--radius);
+    }
+
+    .menu-item .info h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.45rem;
+      margin-bottom: 0.3rem;
+    }
+    .menu-item .info p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .menu-item .tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 20px;
+    }
+    .tag.spicy { border-color: var(--wine); color: var(--wine); }
+    .menu-item .price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--wine);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .menu-item.unavailable {
+      opacity: 0.4;
+    }
+    .menu-item.unavailable .price::after {
+      content: ' — Sold out';
+      font-size: 0.75rem;
+      font-family: 'Inter', sans-serif;
+      display: block;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .loading, .error {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 640px) {
+      .menu-item { grid-template-columns: 90px 1fr; gap: 1rem; }
+      .menu-item img { width: 90px; height: 70px; }
+      .menu-item .price { grid-column: 2; text-align: left; font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/">La Belle Époque</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/menu.html" class="active">Menu</a>
+      <a href="/reservations.html">Reservations</a>
+      <a href="/order.html">Order</a>
+      <a href="/about.html">About</a>
+    </nav>
+    <a class="btn btn-gold" href="/reservations.html">Reserve</a>
+  </header>
+
+  <section class="menu-hero">
+    <h1>The Menu</h1>
+    <p>Seasonal ingredients, timeless technique. Every dish is composed to be savored slowly.</p>
+  </section>
+
+  <div class="filters" id="filters">
+    <button data-cat="all" class="active">All</button>
+  </div>
+
+  <section class="menu-section" id="menu-section">
+    <p class="loading">Loading menu…</p>
+  </section>
+
+  <footer>
+    <p>© 2024 La Belle Époque · 27 Rue Saint-Honoré, Paris · +33 1 42 60 00 00</p>
+  </footer>
+
+  <script>
+    let allData = null;
+    let activeCategory = 'all';
+
+    async function load() {
+      try {
+        const res = await fetch('/api/menu');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        allData = await res.json();
+        renderFilters();
+        renderMenu();
+      } catch (e) {
+        document.getElementById('menu-section').innerHTML =
+          '<p class="error">Could not load menu. Is the server running? (' + e.message + ')</p>';
+      }
+    }
+
+    function renderFilters() {
+      const filters = document.getElementById('filters');
+      filters.innerHTML = '<button data-cat="all" class="active">All</button>' +
+        allData.categories.map(c =>
+          `<button data-cat="${c.id}">${c.name}</button>`
+        ).join('');
+      filters.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          activeCategory = b.dataset.cat;
+          filters.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          renderMenu();
+        });
+      });
+    }
+
+    function renderMenu() {
+      const section = document.getElementById('menu-section');
+      if (!allData) return;
+
+      const cats = allData.categories.filter(c =>
+        activeCategory === 'all' || String(c.id) === String(activeCategory)
+      );
+
+      if (!cats.length) {
+        section.innerHTML = '<p class="error">No categories to show.</p>';
+        return;
+      }
+
+      section.innerHTML = cats.map(cat => `
+        <div class="menu-category">
+          <h2>${cat.name}</h2>
+          ${cat.items.length ? cat.items.map(item => `
+            <article class="menu-item ${item.available ? '' : 'unavailable'}">
+              <img src="${item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300'}" alt="${item.name}" loading="lazy" />
+              <div class="info">
+                <h3>${item.name}</h3>
+                <p>${item.description || ''}</p>
+                <div class="tags">
+                  ${item.dietary_tags.map(t =>
+                    `<span class="tag ${t === 'spicy' ? 'spicy' : ''}">${t.replace('_', ' ')}</span>`
+                  ).join('')}
+                </div>
+              </div>
+              <div class="price">$${item.price.toFixed(2)}</div>
+            </article>
+          `).join('') : '<p class="loading">No items in this category.</p>'}
+        </div>
+      `).join('');
+    }
+
+    load();
+  </script>
+</body>
+</html>

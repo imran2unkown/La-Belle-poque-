@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservations — La Belle Époque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/">La Belle Époque</a>
+    <nav>
+      <a href="/">Home</a><a href="/menu.html">Menu</a>
+      <a href="/reservations.html">Reservations</a><a href="/order.html">Order</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </header>
+
+  <section style="max-width:720px;margin:0 auto;">
+    <h1 style="font-size:3rem;margin-bottom:0.5rem;">Reserve a Table</h1>
+    <p style="color:var(--muted);margin-bottom:2.5rem;">Select your date and party size — we'll show available times.</p>
+
+    <form id="res-form" style="display:grid;gap:1.2rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+        <label>Date<input type="date" name="reservation_date" id="res-date" required style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;"></label>
+        <label>Party size
+          <select name="party_size" id="res-size" required style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;">
+            <option value="">Select</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="slot-wrap" style="display:none;">
+        <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:0.75rem;">Available times</p>
+        <div id="slots" style="display:flex;flex-wrap:wrap;gap:0.75rem;"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+        <label>Full name<input name="full_name" required style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;"></label>
+        <label>Email<input type="email" name="email" required style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;"></label>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+        <label>Phone<input name="phone" required style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;"></label>
+        <label>Notes<input name="notes" style="width:100%;padding:0.75rem;border:1px solid var(--line);background:#fff;font-family:inherit;"></label>
+      </div>
+
+      <input type="hidden" name="reservation_time" id="selected-time" />
+      <button type="submit" class="btn btn-gold" style="justify-self:start;">Confirm Reservation</button>
+      <p id="res-msg" style="font-weight:600;"></p>
+    </form>
+  </section>
+
+  <script>
+    const dateEl = document.getElementById('res-date');
+    const sizeEl = document.getElementById('res-size');
+    const slotWrap = document.getElementById('slot-wrap');
+    const slotsEl = document.getElementById('slots');
+    const selectedTime = document.getElementById('selected-time');
+
+    async function loadSlots() {
+      const date = dateEl.value;
+      const size = sizeEl.value;
+      if (!date || !size) return;
+      slotWrap.style.display = 'block';
+      slotsEl.innerHTML = '<p style="color:var(--muted);">Loading…</p>';
+      try {
+        const res = await fetch(`/api/availability?date=${date}&partySize=${size}`);
+        const data = await res.json();
+        if (data.closed) {
+          slotsEl.innerHTML = '<p style="color:var(--wine);">We are closed on this date.</p>';
+          return;
+        }
+        if (!data.slots.length) {
+          slotsEl.innerHTML = '<p style="color:var(--wine);">No availability — try another date.</p>';
+          return;
+        }
+        slotsEl.innerHTML = data.slots.map(s => `
+          <button type="button" data-time="${s}"
+            style="padding:0.6rem 1.2rem;border:1px solid var(--gold);background:#fff;cursor:pointer;font-family:inherit;">${s}</button>
+        `).join('');
+        slotsEl.querySelectorAll('button').forEach(b => {
+          b.addEventListener('click', () => {
+            slotsEl.querySelectorAll('button').forEach(x => x.style.background = '#fff');
+            b.style.background = 'var(--gold)';
+            selectedTime.value = b.dataset.time;
+          });
+        });
+      } catch (e) { slotsEl.textContent = 'Error loading availability'; }
+    }
+    dateEl.addEventListener('change', loadSlots);
+    sizeEl.addEventListener('change', loadSlots);
+
+    document.getElementById('res-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedTime.value) {
+        document.getElementById('res-msg').textContent = 'Please choose a time slot.';
+        return;
+      }
+      const fd = new FormData(e.target);
+      const body = Object.fromEntries(fd.entries());
+      const res = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      const msg = document.getElementById('res-msg');
+      if (!res.ok) {
+        msg.textContent = '⚠ ' + (data.error || 'Could not book');
+        msg.style.color = '#5b1f2b';
+      } else {
+        msg.textContent = `✓ Reserved for ${data.reservation_date} at ${data.reservation_time} (${data.party_size} guests).`;
+        msg.style.color = '#2f7d32';
+        e.target.reset();
+        slotWrap.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

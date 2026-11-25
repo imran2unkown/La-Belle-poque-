@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Online — La Belle Époque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .layout { display:grid; grid-template-columns: 2fr 1fr; gap:3rem; max-width:1200px; margin:0 auto; }
+    .menu-block h3 { font-size:1.8rem; margin:2.5rem 0 1rem; border-bottom:1px solid var(--line); padding-bottom:0.5rem; }
+    .menu-row { display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-bottom:1px dashed var(--line); }
+    .menu-row .info { flex:1; }
+    .menu-row h4 { font-family:'Cormorant Garamond',serif; font-size:1.3rem; }
+    .menu-row p { font-size:0.85rem; color:var(--muted); }
+    .menu-row .tags { font-size:0.7rem; letter-spacing:0.1em; color:var(--gold); text-transform:uppercase; margin-top:0.2rem; }
+    .menu-row .price { margin:0 1rem; font-weight:600; }
+    .menu-row button { background:var(--gold); border:none; padding:0.5rem 1rem; cursor:pointer; font-family:inherit; }
+    .cart { position:sticky; top:100px; background:#fff; padding:2rem; border:1px solid var(--line); height:fit-content; }
+    .cart h3 { font-size:1.5rem; margin-bottom:1rem; }
+    .cart-line { display:flex; justify-content:space-between; padding:0.4rem 0; font-size:0.9rem; }
+    .cart-total { font-weight:700; font-size:1.2rem; border-top:1px solid var(--line); padding-top:1rem; margin-top:1rem; display:flex; justify-content:space-between; }
+    .cart label { display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.15em; margin-top:1rem; margin-bottom:0.3rem; }
+    .cart input, .cart select, .cart textarea { width:100%; padding:0.6rem; border:1px solid var(--line); font-family:inherit; }
+    .qty-btn { background:transparent;border:1px solid var(--line); width:24px;height:24px;cursor:pointer; }
+    @media (max-width:860px) { .layout { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/">La Belle Époque</a>
+    <nav>
+      <a href="/">Home</a><a href="/menu.html">Menu</a>
+      <a href="/reservations.html">Reservations</a><a href="/order.html">Order</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </header>
+
+  <section style="padding:4rem 4vw;">
+    <h1 style="font-size:3rem;margin-bottom:0.5rem;">Order Online</h1>
+    <p style="color:var(--muted);margin-bottom:2.5rem;">Pickup or delivery — ready in 25–40 minutes.</p>
+
+    <div class="layout">
+      <div class="menu-block" id="menu-block">Loading menu…</div>
+      <aside class="cart">
+        <h3>Your Order</h3>
+        <div id="cart-lines" style="margin-bottom:1rem;"></div>
+        <div class="cart-total"><span>Subtotal</span><span id="cart-subtotal">$0.00</span></div>
+
+        <label>Fulfillment</label>
+        <select id="fulfillment">
+          <option value="pickup">Pickup</option>
+          <option value="delivery">Delivery (+$4.99)</option>
+        </select>
+
+        <label>Full name</label><input id="o-name" required>
+        <label>Email</label><input id="o-email" type="email" required>
+        <label>Phone</label><input id="o-phone" required>
+        <div id="addr-wrap" style="display:none;">
+          <label>Delivery address</label><input id="o-address">
+        </div>
+        <label>Notes (optional)</label><textarea id="o-notes" rows="2"></textarea>
+
+        <button id="place-order" class="btn btn-gold" style="width:100%;margin-top:1.5rem;">Place Order</button>
+        <p id="order-msg" style="margin-top:1rem;font-weight:600;"></p>
+      </aside>
+    </div>
+  </section>
+
+  <script>
+    const cart = [];
+    let menuData = null;
+
+    async function loadMenu() {
+      menuData = await fetch('/api/menu').then(r => r.json());
+      const block = document.getElementById('menu-block');
+      block.innerHTML = menuData.categories.map(cat => `
+        <h3>${cat.name}</h3>
+        ${cat.items.map(item => `
+          <div class="menu-row">
+            <div class="info">
+              <h4>${item.name} ${!item.available ? '<small style="color:var(--wine);">(Unavailable)</small>' : ''}</h4>
+              <p>${item.description || ''}</p>
+              <div class="tags">${item.dietary_tags.join(' · ')}</div>
+            </div>
+            <span class="price">$${item.price.toFixed(2)}</span>
+            <button data-id="${item.id}" ${!item.available ? 'disabled' : ''}>Add</button>
+          </div>
+        `).join('')}
+      `).join('');
+      block.querySelectorAll('button').forEach(b => b.addEventListener('click', () => addToCart(+b.dataset.id)));
+    }
+
+    function addToCart(id) {
+      let item = null;
+      for (const cat of menuData.categories) {
+        const found = cat.items.find(i => i.id === id);
+        if (found) { item = found; break; }
+      }
+      if (!item) return;
+      const existing = cart.find(c => c.id === id);
+      if (existing) existing.quantity++;
+      else cart.push({ id, name: item.name, price: item.price, quantity: 1 });
+      renderCart();
+    }
+
+    function renderCart() {
+      const lines = document.getElementById('cart-lines');
+      if (!cart.length) {
+        lines.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">Your cart is empty.</p>';
+        document.getElementById('cart-subtotal').textContent = '$0.00';
+        return;
+      }
+      let subtotal = 0;
+      lines.innerHTML = cart.map((c, i) => {
+        subtotal += c.price * c.quantity;
+        return `<div class="cart-line">
+          <span>${c.name}</span>
+          <span>
+            <button class="qty-btn" data-i="${i}" data-d="-1">−</button>
+            ${c.quantity}
+            <button class="qty-btn" data-i="${i}" data-d="1">+</button>
+            $${(c.price * c.quantity).toFixed(2)}
+          </span>
+        </div>`;
+      }).join('');
+      document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
+      lines.querySelectorAll('.qty-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          const i = +b.dataset.i;
+          cart[i].quantity += +b.dataset.d;
+          if (cart[i].quantity <= 0) cart.splice(i, 1);
+          renderCart();
+        });
+      });
+    }
+
+    document.getElementById('fulfillment').addEventListener('change', e => {
+      document.getElementById('addr-wrap').style.display = e.target.value === 'delivery' ? 'block' : 'none';
+    });
+
+    document.getElementById('place-order').addEventListener('click', async () => {
+      if (!cart.length) {
+        document.getElementById('order-msg').textContent = 'Add something to your cart first.';
+        return;
+      }
+      const payload = {
+        full_name: document.getElementById('o-name').value,
+        email: document.getElementById('o-email').value,
+        phone: document.getElementById('o-phone').value,
+        fulfillment: document.getElementById('fulfillment').value,
+        address: document.getElementById('o-address').value,
+        notes: document.getElementById('o-notes').value,
+        items: cart.map(c => ({ id: c.id, quantity: c.quantity })),
+      };
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      const msg = document.getElementById('order-msg');
+      if (!res.ok) {
+        msg.textContent = '⚠ ' + (data.error || 'Order failed');
+        msg.style.color = '#5b1f2b';
+      } else {
+        msg.style.color = '#2f7d32';
+        msg.innerHTML = `✓ Order <strong>${data.order_number}</strong> placed — total $${data.total.toFixed(2)}.`;
+        cart.length = 0;
+        renderCart();
+      }
+    });
+
+    loadMenu();
+  </script>
+</body>
+</html>
