@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Online — La Belle Époque</title>
+  <title>Order Online — La Belle Époque Nairobi</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css" />
   <style>
@@ -30,34 +30,37 @@
   <header class="nav">
     <a class="brand" href="/">La Belle Époque</a>
     <nav>
-      <a href="/">Home</a><a href="/menu.html">Menu</a>
-      <a href="/reservations.html">Reservations</a><a href="/order.html">Order</a>
+      <a href="/">Home</a>
+      <a href="/menu.html">Menu</a>
+      <a href="/reservations.html">Reservations</a>
+      <a href="/order.html">Order</a>
       <a href="/about.html">About</a>
+      <a href="/track.html">Track Order</a>
     </nav>
   </header>
 
   <section style="padding:4rem 4vw;">
     <h1 style="font-size:3rem;margin-bottom:0.5rem;">Order Online</h1>
-    <p style="color:var(--muted);margin-bottom:2.5rem;">Pickup or delivery — ready in 25–40 minutes.</p>
+    <p style="color:var(--muted);margin-bottom:2.5rem;">Pickup or delivery — ready in 25–40 minutes. All prices in KES.</p>
 
     <div class="layout">
       <div class="menu-block" id="menu-block">Loading menu…</div>
       <aside class="cart">
         <h3>Your Order</h3>
         <div id="cart-lines" style="margin-bottom:1rem;"></div>
-        <div class="cart-total"><span>Subtotal</span><span id="cart-subtotal">$0.00</span></div>
+        <div class="cart-total"><span>Subtotal</span><span id="cart-subtotal">KES 0.00</span></div>
 
         <label>Fulfillment</label>
         <select id="fulfillment">
           <option value="pickup">Pickup</option>
-          <option value="delivery">Delivery (+$4.99)</option>
+          <option value="delivery">Delivery (+KES 150)</option>
         </select>
 
         <label>Full name</label><input id="o-name" required>
         <label>Email</label><input id="o-email" type="email" required>
-        <label>Phone</label><input id="o-phone" required>
+        <label>Phone</label><input id="o-phone" required placeholder="+254 ...">
         <div id="addr-wrap" style="display:none;">
-          <label>Delivery address</label><input id="o-address">
+          <label>Delivery address</label><input id="o-address" placeholder="Estate, street, area">
         </div>
         <label>Notes (optional)</label><textarea id="o-notes" rows="2"></textarea>
 
@@ -83,7 +86,7 @@
               <p>${item.description || ''}</p>
               <div class="tags">${item.dietary_tags.join(' · ')}</div>
             </div>
-            <span class="price">$${item.price.toFixed(2)}</span>
+            <span class="price">KES ${item.price.toFixed(2)}</span>
             <button data-id="${item.id}" ${!item.available ? 'disabled' : ''}>Add</button>
           </div>
         `).join('')}
@@ -108,7 +111,7 @@
       const lines = document.getElementById('cart-lines');
       if (!cart.length) {
         lines.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">Your cart is empty.</p>';
-        document.getElementById('cart-subtotal').textContent = '$0.00';
+        document.getElementById('cart-subtotal').textContent = 'KES 0.00';
         return;
       }
       let subtotal = 0;
@@ -120,11 +123,11 @@
             <button class="qty-btn" data-i="${i}" data-d="-1">−</button>
             ${c.quantity}
             <button class="qty-btn" data-i="${i}" data-d="1">+</button>
-            $${(c.price * c.quantity).toFixed(2)}
+            KES ${(c.price * c.quantity).toFixed(2)}
           </span>
         </div>`;
       }).join('');
-      document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
+      document.getElementById('cart-subtotal').textContent = 'KES ' + subtotal.toFixed(2);
       lines.querySelectorAll('.qty-btn').forEach(b => {
         b.addEventListener('click', () => {
           const i = +b.dataset.i;
@@ -165,7 +168,8 @@
         msg.style.color = '#5b1f2b';
       } else {
         msg.style.color = '#2f7d32';
-        msg.innerHTML = `✓ Order <strong>${data.order_number}</strong> placed — total $${data.total.toFixed(2)}.`;
+        msg.innerHTML = `✓ Order <strong>${data.order_number}</strong> placed — total KES ${data.total.toFixed(2)}.<br>
+          <a href="${data.tracking_url}" style="color:var(--gold);font-weight:700;">Track your order →</a>`;
         cart.length = 0;
         renderCart();
       }

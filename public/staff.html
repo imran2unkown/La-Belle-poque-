@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Dashboard — La Belle Époque Nairobi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body { background: #f0ebe0; }
+    .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .login-card { background:#fff; padding:3rem; border-radius:var(--radius); border:1px solid var(--line); max-width:420px; width:100%; box-shadow:0 30px 60px -20px rgba(0,0,0,0.15); }
+    .login-card h1 { font-size:2.2rem; color:var(--wine); margin-bottom:0.5rem; }
+    .login-card p { color:var(--muted); margin-bottom:2rem; font-size:0.9rem; }
+    .login-card label { display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.4rem; color:var(--muted); }
+    .login-card input { width:100%; padding:0.8rem; border:1px solid var(--line); font-family:inherit; margin-bottom:1.2rem; background:var(--cream); }
+    .login-card button { width:100%; padding:1rem; background:var(--gold); border:1px solid var(--gold); color:var(--ink); font-family:inherit; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.18em; cursor:pointer; }
+    .login-card .error { color:var(--wine); font-size:0.9rem; margin-bottom:1rem; font-weight:600; }
+
+    .dash { display:none; min-height:100vh; }
+    .dash.visible { display:block; }
+    .dash-header { background:var(--ink); color:var(--cream); padding:1rem 4vw; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:50; }
+    .dash-header .brand { color:var(--gold); font-size:1.3rem; font-family:'Cormorant Garamond',serif; text-decoration:none; }
+    .dash-header .user { display:flex; align-items:center; gap:1.5rem; font-size:0.85rem; }
+    .role-badge { background:var(--gold); color:var(--ink); padding:0.3rem 0.8rem; border-radius:20px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; }
+    .dash-header button { background:transparent; border:1px solid var(--cream); color:var(--cream); padding:0.5rem 1rem; font-family:inherit; font-size:0.75rem; text-transform:uppercase; cursor:pointer; }
+    .dash-header button:hover { background:var(--cream); color:var(--ink); }
+
+    .content { padding:2.5rem 4vw; max-width:1200px; margin:0 auto; }
+    .content h2 { font-size:1.8rem; color:var(--wine); margin-bottom:1.5rem; }
+
+    .filter-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .filter-row button { padding:0.5rem 1rem; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; }
+    .filter-row button.active { background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600; }
+
+    .order-grid { display:grid; gap:1rem; }
+    .order-card { background:#fff; border:1px solid var(--line); padding:1.5rem; border-left:5px solid var(--gold); }
+    .order-card.status-pending { border-left-color:#f39c12; }
+    .order-card.status-confirmed { border-left-color:#e67e22; }
+    .order-card.status-preparing { border-left-color:#3498db; }
+    .order-card.status-ready { border-left-color:#27ae60; }
+    .order-card.status-out_for_delivery { border-left-color:#9b59b6; }
+    .order-card.status-delivered, .order-card.status-completed { border-left-color:#2ecc71; }
+    .order-card.status-cancelled { border-left-color:#e74c3c; }
+
+    .order-card h3 { font-size:1.3rem; margin-bottom:0.4rem; }
+    .order-card .meta { font-size:0.85rem; color:var(--muted); margin-bottom:0.8rem; }
+    .order-card .items { font-size:0.9rem; margin-bottom:1rem; }
+    .order-card .items div { padding:0.2rem 0; }
+    .order-card .actions { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+    .order-card .actions button { padding:0.5rem 1rem; border:none; background:var(--gold); font-family:inherit; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; font-weight:600; }
+    .order-card .actions button:hover { background:var(--ink); color:var(--gold); }
+
+    .empty { background:#fff; border:1px solid var(--line); padding:2rem; text-align:center; color:var(--muted); }
+
+    .toast { position:fixed; bottom:2rem; right:2rem; background:var(--ink); color:var(--cream); padding:1rem 1.8rem; border-left:4px solid var(--gold); font-size:0.9rem; box-shadow:0 10px 30px rgba(0,0,0,0.3); transform:translateY(200%); transition:transform 0.3s; z-index:999; }
+    .toast.show { transform:translateY(0); }
+    .toast.error { border-left-color:var(--wine); }
+  </style>
+</head>
+<body>
+  <div class="login-wrap" id="login-view">
+    <div class="login-card">
+      <h1>Staff Login</h1>
+      <p>Waiters, cashiers, kitchen & delivery — sign in.</p>
+      <form id="login-form">
+        <div class="error" id="login-error" style="display:none;"></div>
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@labelleepoque.ke" required>
+        <label>Password</label>
+        <input type="password" id="login-password" required>
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="dash" id="dash-view">
+    <div class="dash-header">
+      <a class="brand" href="/">La Belle Époque · Staff</a>
+      <div class="user">
+        <span id="staff-name">—</span>
+        <span class="role-badge" id="role-badge">—</span>
+        <button id="logout-btn">Sign out</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <h2 id="page-title">Orders</h2>
+      <div class="filter-row" id="filter-row"></div>
+      <div class="order-grid" id="orders-grid">
+        <p class="empty">Loading…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function toast(msg, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.className = 'toast', 3500);
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch('/api' + path, {
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+        ...opts,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    }
+
+    const loginView = document.getElementById('login-view');
+    const dashView = document.getElementById('dash-view');
+    let currentStaff = null;
+    let activeFilter = 'active';
+    let refreshTimer = null;
+
+    const ROLE_VIEW = {
+      cashier: {
+        title: 'Cashier — Confirm & Complete Orders',
+        filter: 'pending,ready',
+        transitions: { pending: ['confirmed', 'cancelled'], ready: ['completed'] },
+      },
+      waiter: {
+        title: 'Waiter — Move Orders to Kitchen',
+        filter: 'confirmed,preparing',
+        transitions: { confirmed: ['preparing'], preparing: ['ready'] },
+      },
+      kitchen: {
+        title: 'Kitchen — Preparing Orders',
+        filter: 'preparing',
+        transitions: { preparing: ['ready'] },
+      },
+      delivery: {
+        title: 'Delivery — Ready & On the Way',
+        filter: 'ready,out_for_delivery',
+        transitions: { ready: ['out_for_delivery'], out_for_delivery: ['delivered'] },
+      },
+      manager: {
+        title: 'Manager — All Orders',
+        filter: 'pending,confirmed,preparing,ready,out_for_delivery',
+        transitions: {
+          pending: ['confirmed', 'cancelled'],
+          confirmed: ['preparing', 'cancelled'],
+          preparing: ['ready', 'cancelled'],
+          ready: ['out_for_delivery', 'completed'],
+          out_for_delivery: ['delivered', 'completed'],
+        },
+      },
+    };
+
+    async function checkSession() {
+      try {
+        const me = await api('/staff/me');
+        if (me && me.id) { showDashboard(me); return; }
+      } catch (_) {}
+      showLogin();
+    }
+    function showLogin() {
+      loginView.style.display = 'flex';
+      dashView.classList.remove('visible');
+      if (refreshTimer) clearInterval(refreshTimer);
+    }
+
+    function showDashboard(s) {
+      currentStaff = s;
+      loginView.style.display = 'none';
+      dashView.classList.add('visible');
+      document.getElementById('staff-name').textContent = s.full_name;
+      document.getElementById('role-badge').textContent = s.role.replace('_', ' ');
+      document.getElementById('page-title').textContent = ROLE_VIEW[s.role]?.title || 'Orders';
+      buildFilters();
+      loadOrders();
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(loadOrders, 15000);
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('login-error');
+      err.style.display = 'none';
+      try {
+        const res = await api('/staff/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-password').value,
+          }),
+        });
+        showDashboard(res.staff);
+        toast('Welcome, ' + res.staff.full_name);
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await api('/staff/logout', { method: 'POST' }); } catch (_) {}
+      location.reload();
+    });
+
+    function buildFilters() {
+      const row = document.getElementById('filter-row');
+      const opts = [
+        { key: 'active', label: 'Active', query: ROLE_VIEW[currentStaff.role].filter },
+        { key: 'all', label: 'All Orders', query: '' },
+        { key: 'delivered', label: 'Delivered', query: 'delivered,completed' },
+        { key: 'cancelled', label: 'Cancelled', query: 'cancelled' },
+      ];
+      row.innerHTML = opts.map(o =>
+        `<button data-filter="${o.key}" data-query="${o.query}" class="${o.key === activeFilter ? 'active' : ''}">${o.label}</button>`
+      ).join('');
+      row.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          activeFilter = b.dataset.filter;
+          row.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          loadOrders();
+        });
+      });
+    }
+
+    async function loadOrders() {
+      if (!currentStaff) return;
+      const grid = document.getElementById('orders-grid');
+      const activeBtn = document.querySelector('.filter-row button.active');
+      const query = activeBtn ? activeBtn.dataset.query : '';
+      try {
+        const rows = await api('/staff/orders' + (query ? '?status=' + encodeURIComponent(query) : ''));
+        if (!rows.length) {
+          grid.innerHTML = '<p class="empty">No orders in this view.</p>';
+          return;
+        }
+        grid.innerHTML = rows.map(o => renderOrderCard(o)).join('');
+      } catch (e) {
+        grid.innerHTML = `<p class="empty">Error: ${e.message}</p>`;
+      }
+    }
+
+    function renderOrderCard(o) {
+      const role = currentStaff.role;
+      const allowed = (ROLE_VIEW[role]?.transitions || {})[o.status] || [];
+      const transitionsHtml = allowed.map(next =>
+        `<button onclick="changeStatus(${o.id}, '${next}')">${next.replace(/_/g, ' ')}</button>`
+      ).join('');
+
+      const items = (o.items || []).map(i =>
+        `<div>${i.quantity}× ${i.item_name} — KES ${(i.unit_price * i.quantity).toFixed(2)}</div>`
+      ).join('');
+
+      const deliveryInfo = o.assigned_delivery_staff_id
+        ? `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);">🏍 Delivery: ${o.delivery_name || '#' + o.assigned_delivery_staff_id}</div>`
+        : (o.fulfillment === 'delivery' && ['cashier','manager'].includes(role)
+          ? `<div style="margin-top:0.6rem;"><button style="font-size:0.7rem;padding:0.4rem 0.8rem;background:var(--gold);border:none;cursor:pointer;" onclick="assignDelivery(${o.id})">Assign delivery rider</button></div>`
+          : '');
+
+      return `
+        <div class="order-card status-${o.status}">
+          <h3>${o.order_number} <span style="font-size:0.8rem;color:var(--muted);font-weight:400;">· ${o.status.replace(/_/g, ' ')}</span></h3>
+          <div class="meta">
+            ${o.full_name} · ${o.phone} · ${o.fulfillment === 'delivery' ? 'Delivery' : 'Pickup'}<br>
+            ${new Date(o.created_at).toLocaleString('en-KE')}
+          </div>
+          <div class="items">${items}</div>
+          <div style="font-weight:700;margin-bottom:0.8rem;">Total: KES ${Number(o.total).toFixed(2)}</div>
+          <div class="actions">${transitionsHtml || '<span style="color:var(--muted);font-size:0.85rem;">No actions for your role at this stage.</span>'}</div>
+          ${deliveryInfo}
+        </div>
+      `;
+    }
+
+    window.changeStatus = async (id, status) => {
+      if (!confirm(`Mark order as "${status.replace(/_/g, ' ')}"?`)) return;
+      try {
+        await api(`/staff/orders/${id}/status`, {
+          method: 'PATCH', body: JSON.stringify({ status }),
+        });
+        toast('Order updated');
+        loadOrders();
+      } catch (e) { toast(e.message, true); }
+    };
+
+    window.assignDelivery = async (id) => {
+      try {
+        const staffList = await api('/staff/delivery-staff');
+        if (!staffList.length) { toast('No delivery staff available', true); return; }
+        const names = staffList.map((s, i) => `${i + 1}. ${s.full_name}`).join('\n');
+        const pick = prompt('Assign to which rider?\n' + names);
+        const idx = parseInt(pick, 10) - 1;
+        if (isNaN(idx) || !staffList[idx]) return;
+        await api(`/staff/orders/${id}/assign-delivery`, {
+          method: 'PATCH', body: JSON.stringify({ staff_id: staffList[idx].id }),
+        });
+        toast('Rider assigned');
+        loadOrders();
+      } catch (e) { toast(e.message, true); }
+    };
+
+    checkSession();
+  </script>
+</body>
+</html>

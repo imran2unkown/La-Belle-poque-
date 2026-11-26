@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About & Contact — La Belle Époque Nairobi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .about-hero {
+      background: linear-gradient(rgba(20,18,15,0.65), rgba(20,18,15,0.65)),
+                  url('https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1600') center/cover;
+      color: var(--cream); padding: 8rem 8vw 6rem; text-align: center;
+    }
+    .about-hero h1 { font-size: clamp(3rem, 6vw, 4.5rem); margin-bottom: 1rem; }
+    .about-hero p { color: rgba(248,244,236,0.85); font-size: 1.15rem; max-width: 640px; margin: 0 auto; }
+
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; max-width: 1200px; margin: 0 auto; padding: 6rem 8vw; }
+    .story img { border-radius: var(--radius); box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); height: 500px; object-fit: cover; }
+    .story h2 { margin-bottom: 1.5rem; }
+    .story p { color: var(--muted); margin-bottom: 1rem; line-height: 1.75; }
+    .signature { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; color: var(--wine); margin-top: 1.5rem; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 1200px; margin: 0 auto; padding: 0 8vw 6rem; }
+    .info-card { background: #fff; padding: 2.5rem; border: 1px solid var(--line); border-radius: var(--radius); }
+    .info-card h3 { font-size: 1.6rem; margin-bottom: 1.5rem; color: var(--wine); display: flex; align-items: center; gap: 0.75rem; }
+    .info-card h3::before { content: ''; width: 30px; height: 2px; background: var(--gold); }
+
+    .hours-list { list-style: none; }
+    .hours-list li { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+    .hours-list li:last-child { border-bottom: none; }
+    .hours-list li.closed { color: var(--wine); font-style: italic; }
+    .hours-list .day { font-weight: 600; }
+
+    .contact-list { list-style: none; }
+    .contact-list li { display: flex; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--line); }
+    .contact-list li:last-child { border-bottom: none; }
+    .contact-list .icon { color: var(--gold); font-size: 1.3rem; width: 30px; flex-shrink: 0; }
+    .contact-list .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 0.2rem; }
+    .contact-list .value { color: var(--ink); font-weight: 500; }
+
+    .map-wrap { max-width: 1200px; margin: 0 auto 6rem; padding: 0 8vw; }
+    .map-wrap h2 { text-align: center; margin-bottom: 2rem; }
+    .map { width: 100%; height: 450px; border: 4px solid var(--gold); border-radius: var(--radius); filter: grayscale(30%) contrast(1.05); }
+
+    @media (max-width: 860px) {
+      .story, .info-grid { grid-template-columns: 1fr; }
+      .story img { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/">La Belle Époque</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/menu.html">Menu</a>
+      <a href="/reservations.html">Reservations</a>
+      <a href="/order.html">Order</a>
+      <a href="/about.html" class="active">About</a>
+    </nav>
+    <a class="btn btn-gold" href="/reservations.html">Reserve</a>
+  </header>
+
+  <section class="about-hero">
+    <h1>Our Story</h1>
+    <p>A quarter century of quiet obsession with the perfect plate — now in the heart of Nairobi.</p>
+  </section>
+
+  <section class="story">
+    <div>
+      <h2>Nairobi's Belle Époque</h2>
+      <p>La Belle Époque opened its doors in 1998 in Paris, and since 2024 has called Kimathi Street in Nairobi's CBD home. Chef Julien Moreau and his Kenyan team bring together French technique and East African produce — a menu that feels both timeless and unmistakably local.</p>
+      <p>Today, we source from small farms in Kiambu, Limuru and Nyeri. Our beef is grass-fed from Laikipia. Our coffee — roasted a few blocks away. Every dish tells a story of two continents meeting on a plate.</p>
+      <p>We believe in slow food, honest ingredients, and the kind of hospitality that feels less like service and more like being welcomed into someone's home.</p>
+      <p class="signature">— Julien Moreau, Chef & Founder</p>
+    </div>
+    <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800" alt="Chef Julien Moreau" />
+  </section>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h3>Opening Hours</h3>
+      <ul class="hours-list" id="hours-list">
+        <li><span class="day">Loading…</span></li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h3>Visit Us</h3>
+      <ul class="contact-list">
+        <li>
+          <span class="icon">📍</span>
+          <div>
+            <div class="label">Address</div>
+            <div class="value">Kimathi Street<br>Nairobi CBD, Kenya</div>
+          </div>
+        </li>
+        <li>
+          <span class="icon">📞</span>
+          <div>
+            <div class="label">Reservations</div>
+            <div class="value">+254 700 123 456</div>
+          </div>
+        </li>
+        <li>
+          <span class="icon">✉️</span>
+          <div>
+            <div class="label">Email</div>
+            <div class="value">hello@labelleepoque.ke</div>
+          </div>
+        </li>
+        <li>
+          <span class="icon">🚌</span>
+          <div>
+            <div class="label">Nearest Matatu Stage</div>
+            <div class="value">Kencom — 3 min walk</div>
+          </div>
+        </li>
+        <li>
+          <span class="icon">💳</span>
+          <div>
+            <div class="label">Payments</div>
+            <div class="value">M-Pesa · Visa · Mastercard · Cash (KES)</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <h2>Find Us</h2>
+    <iframe
+      class="map"
+      src="https://www.google.com/maps?q=Kimathi+Street,+Nairobi,+Kenya&output=embed"
+      allowfullscreen
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </div>
+
+  <footer>
+    <p>© 2024 La Belle Époque · Kimathi Street, Nairobi, Kenya · +254 700 123 456</p>
+  </footer>
+
+  <script>
+    const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    async function loadHours() {
+      const list = document.getElementById('hours-list');
+      try {
+        const res = await fetch('/api/hours');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const hours = await res.json();
+        const ordered = [...hours].sort((a, b) => [1,2,3,4,5,6,0].indexOf(a.day_of_week) - [1,2,3,4,5,6,0].indexOf(b.day_of_week));
+        list.innerHTML = ordered.map(h => {
+          const day = DAYS[h.day_of_week];
+          if (h.is_closed) return `<li class="closed"><span class="day">${day}</span><span>Closed</span></li>`;
+          return `<li><span class="day">${day}</span><span>${h.open_time.slice(0,5)} – ${h.close_time.slice(0,5)}</span></li>`;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = '<li><span class="day">Hours unavailable</span></li>';
+      }
+    }
+    loadHours();
+  </script>
+</body>
+</html>

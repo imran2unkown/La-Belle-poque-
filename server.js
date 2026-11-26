@@ -13,7 +13,6 @@ const pool = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---------- VERBOSE ENV CHECK ----------
 console.log('--- ENV CHECK ---');
 console.log('DB_HOST     :', process.env.DB_HOST);
 console.log('DB_PORT     :', process.env.DB_PORT);
@@ -24,7 +23,6 @@ console.log('NODE_ENV    :', process.env.NODE_ENV);
 console.log('PORT        :', PORT);
 console.log('-----------------');
 
-// ---------- MIDDLEWARE ----------
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -49,19 +47,19 @@ app.use(rateLimit({
   legacyHeaders: false,
 }));
 
-// ---------- ROUTES ----------
 try {
   app.use('/api', require('./routes/public'));
   app.use('/api/reservations', require('./routes/reservations'));
   app.use('/api/orders', require('./routes/orders'));
+  app.use('/api/track', require('./routes/order_tracking'));
   app.use('/api/admin', require('./routes/admin'));
+  app.use('/api/staff', require('./routes/staff'));
   console.log('✅ All route modules loaded');
 } catch (err) {
   console.error('❌ Failed to load routes:', err.message);
   process.exit(1);
 }
 
-// ---------- STATIC + SPA FALLBACK ----------
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('*', (req, res, next) => {
@@ -69,32 +67,22 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
     if (err) {
       console.error('❌ Could not send index.html:', err.message);
-      res.status(500).send('Frontend not found — is public/index.html present?');
+      res.status(500).send('Frontend not found');
     }
   });
 });
 
-// ---------- ERROR HANDLER ----------
 app.use((err, req, res, next) => {
   console.error('❌ Unhandled route error:', err);
   res.status(500).json({ error: 'Server error' });
 });
 
-// ---------- ADMIN BOOTSTRAP ----------
 async function bootstrapAdmin() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
-
-  if (!email || !password) {
-    console.log('ℹ️  ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin bootstrap');
-    return;
-  }
-
-  console.log(`🔍 Checking admin account: ${email}`);
+  if (!email || !password) return;
   const [rows] = await pool.query('SELECT id FROM admins WHERE email = ?', [email]);
-
   if (!rows.length) {
-    console.log('   → Admin not found, creating...');
     const hash = await bcrypt.hash(password, 12);
     await pool.query(
       'INSERT INTO admins (email, password_hash, full_name) VALUES (?, ?, ?)',
@@ -106,7 +94,31 @@ async function bootstrapAdmin() {
   }
 }
 
-// ---------- DATABASE CONNECTIVITY TEST ----------
+async function bootstrapStaff() {
+  const defaultPass = process.env.STAFF_DEFAULT_PASSWORD || 'StaffPass123!';
+  const hash = await bcrypt.hash(defaultPass, 12);
+  try {
+    const [placeholder] = await pool.query(
+      "SELECT id, email FROM staff WHERE password_hash = '$2b$10$PLACEHOLDER_HASH_WILL_BE_REPLACED'"
+    );
+    for (const s of placeholder) {
+      await pool.query('UPDATE staff SET password_hash = ? WHERE id = ?', [hash, s.id]);
+      console.log(`   → ✅ Staff password set for ${s.email}`);
+    }
+    if (placeholder.length) {
+      console.log(`   → ℹ️  All staff default password = ${defaultPass}`);
+    } else {
+      console.log('   → ✅ All staff already have passwords');
+    }
+  } catch (e) {
+    if (e.code === 'ER_NO_SUCH_TABLE') {
+      console.log('   → ⚠️  staff table missing — run db/migration_staff_kenya.sql');
+    } else {
+      console.log('   → ⚠️  Staff bootstrap skipped:', e.message);
+    }
+  }
+}
+
 async function testDatabase() {
   console.log('🔍 Testing MySQL connection...');
   const conn = await pool.getConnection();
@@ -119,23 +131,15 @@ async function testDatabase() {
   }
 }
 
-// ---------- STARTUP ----------
 console.log('🚀 Starting server...');
-
 (async () => {
   try {
     await testDatabase();
     await bootstrapAdmin();
+    await bootstrapStaff();
   } catch (err) {
     console.error('❌ Startup failed:', err.message);
     console.error('   Full error:', err);
-    if (err.code === 'ER_ACCESS_DENIED_ERROR') {
-      console.error('   → Check DB_USER and DB_PASSWORD in .env');
-    } else if (err.code === 'ER_BAD_DB_ERROR') {
-      console.error('   → Database does not exist. Run: mysql -u root -p < db/schema.sql');
-    } else if (err.code === 'ECONNREFUSED') {
-      console.error('   → MySQL is not running. Start XAMPP MySQL or "net start MySQL80"');
-    }
     process.exit(1);
   }
 
@@ -145,16 +149,13 @@ console.log('🚀 Starting server...');
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`❌ Port ${PORT} is already in use.`);
-      console.error(`   → Run: netstat -ano | findstr :${PORT}`);
-      console.error(`   → Then: taskkill /F /PID <pid>`);
+      console.error(`❌ Port ${PORT} is already in use. Run: taskkill /F /IM node.exe`);
     } else {
       console.error('❌ Server listen error:', err);
     }
     process.exit(1);
   });
 
-  // Graceful shutdown
   const shutdown = () => {
     console.log('\n🛑 Shutting down...');
     server.close(async () => {
@@ -167,10 +168,7 @@ console.log('🚀 Starting server...');
   process.on('SIGTERM', shutdown);
 })();
 
-// ---------- CATCH UNHANDLED PROMISE REJECTIONS ----------
-process.on('unhandledRejection', (reason) => {
-  console.error('❌ Unhandled promise rejection:', reason);
-});
+process.on('unhandledRejection', (reason) => console.error('❌ Unhandled promise rejection:', reason));
 process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught exception:', err);
   process.exit(1);
