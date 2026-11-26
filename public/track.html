@@ -3,50 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About & Contact — La Belle Époque Nairobi</title>
+  <title>Track Order — La Belle Époque Nairobi</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .about-hero {
-      background: linear-gradient(rgba(20,18,15,0.65), rgba(20,18,15,0.65)),
-                  url('https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1600') center/cover;
-      color: var(--cream); padding: 8rem 8vw 6rem; text-align: center;
-    }
-    .about-hero h1 { font-size: clamp(3rem, 6vw, 4.5rem); margin-bottom: 1rem; }
-    .about-hero p { color: rgba(248,244,236,0.85); font-size: 1.15rem; max-width: 640px; margin: 0 auto; }
+    .track-wrap { max-width: 720px; margin: 4rem auto; padding: 0 2rem; }
+    .track-wrap h1 { font-size: 2.6rem; color: var(--wine); margin-bottom: 0.5rem; }
+    .track-wrap > p { color: var(--muted); margin-bottom: 2rem; }
+    .search-box { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .search-box input { flex: 1; padding: 0.9rem 1.2rem; border: 1px solid var(--line); font-family: inherit; background: #fff; font-size: 1rem; }
+    .search-box button { padding: 0.9rem 1.8rem; background: var(--gold); border: 1px solid var(--gold); color: var(--ink); font-family: inherit; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; }
+    .search-box button:hover { background: transparent; color: var(--gold); }
 
-    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; max-width: 1200px; margin: 0 auto; padding: 6rem 8vw; }
-    .story img { border-radius: var(--radius); box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); height: 500px; object-fit: cover; }
-    .story h2 { margin-bottom: 1.5rem; }
-    .story p { color: var(--muted); margin-bottom: 1rem; line-height: 1.75; }
-    .signature { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; color: var(--wine); margin-top: 1.5rem; }
+    .status-card { background: #fff; border: 1px solid var(--line); padding: 2rem; margin-bottom: 1.5rem; }
+    .status-card h2 { font-size: 1.6rem; margin-bottom: 1rem; color: var(--wine); }
 
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 1200px; margin: 0 auto; padding: 0 8vw 6rem; }
-    .info-card { background: #fff; padding: 2.5rem; border: 1px solid var(--line); border-radius: var(--radius); }
-    .info-card h3 { font-size: 1.6rem; margin-bottom: 1.5rem; color: var(--wine); display: flex; align-items: center; gap: 0.75rem; }
-    .info-card h3::before { content: ''; width: 30px; height: 2px; background: var(--gold); }
+    .steps { display: flex; justify-content: space-between; margin: 2rem 0 1rem; position: relative; }
+    .steps::before { content: ''; position: absolute; top: 18px; left: 20px; right: 20px; height: 2px; background: var(--line); z-index: 0; }
+    .step { text-align: center; flex: 1; position: relative; z-index: 1; }
+    .step .dot { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 2px solid var(--line); margin: 0 auto 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--muted); font-size: 0.85rem; }
+    .step.done .dot { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+    .step.current .dot { background: var(--wine); border-color: var(--wine); color: #fff; }
+    .step .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .step.done .label, .step.current .label { color: var(--ink); font-weight: 600; }
 
-    .hours-list { list-style: none; }
-    .hours-list li { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
-    .hours-list li:last-child { border-bottom: none; }
-    .hours-list li.closed { color: var(--wine); font-style: italic; }
-    .hours-list .day { font-weight: 600; }
+    .order-line { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed var(--line); }
+    .order-line:last-child { border-bottom: none; }
+    .total-line { font-weight: 700; font-size: 1.1rem; padding-top: 1rem; }
 
-    .contact-list { list-style: none; }
-    .contact-list li { display: flex; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--line); }
-    .contact-list li:last-child { border-bottom: none; }
-    .contact-list .icon { color: var(--gold); font-size: 1.3rem; width: 30px; flex-shrink: 0; }
-    .contact-list .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 0.2rem; }
-    .contact-list .value { color: var(--ink); font-weight: 500; }
+    .history-list { list-style: none; }
+    .history-list li { display: flex; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+    .history-list li:last-child { border-bottom: none; }
+    .history-list .time { color: var(--muted); font-size: 0.8rem; min-width: 130px; }
+    .history-list .status { font-weight: 600; color: var(--wine); }
 
-    .map-wrap { max-width: 1200px; margin: 0 auto 6rem; padding: 0 8vw; }
-    .map-wrap h2 { text-align: center; margin-bottom: 2rem; }
-    .map { width: 100%; height: 450px; border: 4px solid var(--gold); border-radius: var(--radius); filter: grayscale(30%) contrast(1.05); }
-
-    @media (max-width: 860px) {
-      .story, .info-grid { grid-template-columns: 1fr; }
-      .story img { height: 300px; }
-    }
+    .not-found { background: #f8d7da; color: #721c24; padding: 1.5rem; border-radius: var(--radius); }
   </style>
 </head>
 <body>
@@ -57,111 +48,102 @@
       <a href="/menu.html">Menu</a>
       <a href="/reservations.html">Reservations</a>
       <a href="/order.html">Order</a>
-      <a href="/about.html" class="active">About</a>
+      <a href="/about.html">About</a>
+      <a href="/track.html" class="active">Track Order</a>
     </nav>
-    <a class="btn btn-gold" href="/reservations.html">Reserve</a>
   </header>
 
-  <section class="about-hero">
-    <h1>Our Story</h1>
-    <p>A quarter century of quiet obsession with the perfect plate — now in the heart of Nairobi.</p>
-  </section>
-
-  <section class="story">
-    <div>
-      <h2>Nairobi's Belle Époque</h2>
-      <p>La Belle Époque opened its doors in 1998 in Paris, and since 2024 has called Kimathi Street in Nairobi's CBD home. Chef Julien Moreau and his Kenyan team bring together French technique and East African produce — a menu that feels both timeless and unmistakably local.</p>
-      <p>Today, we source from small farms in Kiambu, Limuru and Nyeri. Our beef is grass-fed from Laikipia. Our coffee — roasted a few blocks away. Every dish tells a story of two continents meeting on a plate.</p>
-      <p>We believe in slow food, honest ingredients, and the kind of hospitality that feels less like service and more like being welcomed into someone's home.</p>
-      <p class="signature">— Julien Moreau, Chef & Founder</p>
-    </div>
-    <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800" alt="Chef Julien Moreau" />
-  </section>
-
-  <div class="info-grid">
-    <div class="info-card">
-      <h3>Opening Hours</h3>
-      <ul class="hours-list" id="hours-list">
-        <li><span class="day">Loading…</span></li>
-      </ul>
-    </div>
-
-    <div class="info-card">
-      <h3>Visit Us</h3>
-      <ul class="contact-list">
-        <li>
-          <span class="icon">📍</span>
-          <div>
-            <div class="label">Address</div>
-            <div class="value">Kimathi Street<br>Nairobi CBD, Kenya</div>
-          </div>
-        </li>
-        <li>
-          <span class="icon">📞</span>
-          <div>
-            <div class="label">Reservations</div>
-            <div class="value">+254 700 123 456</div>
-          </div>
-        </li>
-        <li>
-          <span class="icon">✉️</span>
-          <div>
-            <div class="label">Email</div>
-            <div class="value">hello@labelleepoque.ke</div>
-          </div>
-        </li>
-        <li>
-          <span class="icon">🚌</span>
-          <div>
-            <div class="label">Nearest Matatu Stage</div>
-            <div class="value">Kencom — 3 min walk</div>
-          </div>
-        </li>
-        <li>
-          <span class="icon">💳</span>
-          <div>
-            <div class="label">Payments</div>
-            <div class="value">M-Pesa · Visa · Mastercard · Cash (KES)</div>
-          </div>
-        </li>
-      </ul>
-    </div>
+  <div class="track-wrap">
+    <h1>Track Your Order</h1>
+    <p>Enter your order number to see live progress.</p>
+    <form class="search-box" id="track-form">
+      <input id="track-input" placeholder="e.g. LB-XXXXXX-XXXXXX" required />
+      <button type="submit">Track</button>
+    </form>
+    <div id="result"></div>
   </div>
-
-  <div class="map-wrap">
-    <h2>Find Us</h2>
-    <iframe
-      class="map"
-      src="https://www.google.com/maps?q=Kimathi+Street,+Nairobi,+Kenya&output=embed"
-      allowfullscreen
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-  </div>
-
-  <footer>
-    <p>© 2024 La Belle Époque · Kimathi Street, Nairobi, Kenya · +254 700 123 456</p>
-  </footer>
 
   <script>
-    const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    async function loadHours() {
-      const list = document.getElementById('hours-list');
+    const STEPS = [
+      { key: 'pending', label: 'Received' },
+      { key: 'confirmed', label: 'Confirmed' },
+      { key: 'preparing', label: 'Preparing' },
+      { key: 'ready', label: 'Ready' },
+      { key: 'out_for_delivery', label: 'On the way' },
+      { key: 'delivered', label: 'Delivered' },
+    ];
+
+    const orderFromUrl = new URLSearchParams(location.search).get('order');
+    if (orderFromUrl) {
+      document.getElementById('track-input').value = orderFromUrl;
+      track(orderFromUrl);
+    }
+
+    document.getElementById('track-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = document.getElementById('track-input').value.trim();
+      if (v) { history.replaceState(null, '', '?order=' + encodeURIComponent(v)); track(v); }
+    });
+
+    async function track(orderNumber) {
+      const box = document.getElementById('result');
+      box.innerHTML = '<p style="color:var(--muted);">Looking up your order…</p>';
       try {
-        const res = await fetch('/api/hours');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const hours = await res.json();
-        const ordered = [...hours].sort((a, b) => [1,2,3,4,5,6,0].indexOf(a.day_of_week) - [1,2,3,4,5,6,0].indexOf(b.day_of_week));
-        list.innerHTML = ordered.map(h => {
-          const day = DAYS[h.day_of_week];
-          if (h.is_closed) return `<li class="closed"><span class="day">${day}</span><span>Closed</span></li>`;
-          return `<li><span class="day">${day}</span><span>${h.open_time.slice(0,5)} – ${h.close_time.slice(0,5)}</span></li>`;
-        }).join('');
+        const res = await fetch('/api/track/' + encodeURIComponent(orderNumber));
+        if (!res.ok) {
+          box.innerHTML = '<div class="not-found">We could not find that order. Check the number and try again.</div>';
+          return;
+        }
+        const { order, items, history } = await res.json();
+        box.innerHTML = renderOrder(order, items, history);
+        if (!['delivered','completed','cancelled'].includes(order.status)) {
+          setTimeout(() => track(orderNumber), 20000);
+        }
       } catch (e) {
-        list.innerHTML = '<li><span class="day">Hours unavailable</span></li>';
+        box.innerHTML = '<div class="not-found">Error loading order. Try again.</div>';
       }
     }
-    loadHours();
+
+    function renderOrder(o, items, history) {
+      const isCancelled = o.status === 'cancelled';
+      let stepIndex = STEPS.findIndex(s => s.key === o.status);
+      if (['completed','delivered'].includes(o.status)) stepIndex = STEPS.length - 1;
+
+      const stepsHtml = STEPS.map((s, i) => {
+        const cls = isCancelled ? '' : (i < stepIndex ? 'done' : i === stepIndex ? 'current' : '');
+        return `<div class="step ${cls}"><div class="dot">${i + 1}</div><div class="label">${s.label}</div></div>`;
+      }).join('');
+
+      const itemsHtml = items.map(i =>
+        `<div class="order-line"><span>${i.quantity}× ${i.item_name}</span><span>KES ${(i.unit_price * i.quantity).toFixed(2)}</span></div>`
+      ).join('');
+
+      const historyHtml = history.map(h => `
+        <li>
+          <span class="time">${new Date(h.created_at).toLocaleString('en-KE')}</span>
+          <span><span class="status">${h.status.replace(/_/g, ' ')}</span>${h.note ? ' — ' + h.note : ''}</span>
+        </li>
+      `).join('') || '<li style="color:var(--muted);">No updates yet.</li>';
+
+      return `
+        <div class="status-card">
+          <h2>Order ${o.order_number}</h2>
+          <p style="color:var(--muted);font-size:0.9rem;">Placed ${new Date(o.created_at).toLocaleString('en-KE')} · ${o.fulfillment === 'delivery' ? 'Delivery' : 'Pickup'}</p>
+          ${isCancelled
+            ? '<p style="color:var(--wine);font-weight:700;margin-top:1rem;">This order has been cancelled.</p>'
+            : `<div class="steps">${stepsHtml}</div>`}
+        </div>
+        <div class="status-card">
+          <h2>Items</h2>
+          ${itemsHtml}
+          <div class="order-line total-line"><span>Total</span><span>KES ${Number(o.total).toFixed(2)}</span></div>
+        </div>
+        <div class="status-card">
+          <h2>Updates</h2>
+          <ul class="history-list">${historyHtml}</ul>
+        </div>
+      `;
+    }
   </script>
 </body>
 </html>

@@ -280,7 +280,6 @@
 </head>
 <body>
 
-  <!-- LOGIN VIEW -->
   <div class="login-wrap" id="login-view">
     <div class="login-card">
       <h1>Admin</h1>
@@ -296,7 +295,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD VIEW -->
   <div class="dash" id="dash-view">
     <div class="dash-header">
       <a class="brand" href="/">La Belle Époque · Admin</a>
@@ -313,10 +311,8 @@
       <button data-tab="orders">Orders</button>
     </div>
 
-    <!-- MENU TAB -->
     <div class="tab-content active" id="tab-menu">
       <h2>Menu Items</h2>
-
       <form class="edit-form" id="add-item-form">
         <div class="full">
           <label>Add New Item</label>
@@ -334,7 +330,7 @@
           <input id="item-description">
         </div>
         <div>
-          <label>Price ($)</label>
+          <label>Price (KES)</label>
           <input id="item-price" type="number" step="0.01" min="0" required>
         </div>
         <div>
@@ -351,23 +347,19 @@
         </div>
         <button type="submit">Add Item</button>
       </form>
-
       <div id="menu-table-wrap"><p class="loading">Loading…</p></div>
     </div>
 
-    <!-- HOURS TAB -->
     <div class="tab-content" id="tab-hours">
       <h2>Opening Hours</h2>
       <div id="hours-wrap"><p class="loading">Loading…</p></div>
     </div>
 
-    <!-- RESERVATIONS TAB -->
     <div class="tab-content" id="tab-reservations">
       <h2>Reservations</h2>
       <div id="reservations-wrap"><p class="loading">Loading…</p></div>
     </div>
 
-    <!-- ORDERS TAB -->
     <div class="tab-content" id="tab-orders">
       <h2>Orders</h2>
       <div id="orders-wrap"><p class="loading">Loading…</p></div>
@@ -377,7 +369,6 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ---------- HELPERS ----------
     function toast(msg, isError = false) {
       const el = document.getElementById('toast');
       el.textContent = msg;
@@ -397,7 +388,6 @@
       return data;
     }
 
-    // ---------- AUTH ----------
     const loginView = document.getElementById('login-view');
     const dashView = document.getElementById('dash-view');
 
@@ -408,7 +398,7 @@
           showDashboard(me);
           return;
         }
-      } catch (_) { /* not logged in */ }
+      } catch (_) { }
       showLogin();
     }
 
@@ -452,7 +442,6 @@
       showLogin();
     });
 
-    // ---------- TABS ----------
     document.querySelectorAll('.tabs button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
@@ -466,17 +455,12 @@
       });
     });
 
-    // ---------- MENU ----------
     async function loadMenuTable() {
       const wrap = document.getElementById('menu-table-wrap');
       try {
         const data = await api('/menu');
-        // Populate category <select> on the add form
         const sel = document.getElementById('item-category');
-        sel.innerHTML = data.categories.map(c =>
-          `<option value="${c.id}">${c.name}</option>`
-        ).join('');
-
+        sel.innerHTML = data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         const rows = [];
         data.categories.forEach(c => c.items.forEach(i => rows.push({ ...i, category: c.name })));
 
@@ -487,19 +471,15 @@
 
         wrap.innerHTML = `
           <table class="data-table">
-            <thead>
-              <tr><th>Category</th><th>Name</th><th>Price</th><th>Available</th><th>Action</th></tr>
-            </thead>
+            <thead><tr><th>Category</th><th>Name</th><th>Price</th><th>Available</th><th>Action</th></tr></thead>
             <tbody>
               ${rows.map(r => `
                 <tr>
                   <td>${r.category}</td>
                   <td><strong>${r.name}</strong><br><small style="color:var(--muted)">${r.description || ''}</small></td>
-                  <td>$${r.price.toFixed(2)}</td>
+                  <td>KES ${r.price.toFixed(2)}</td>
                   <td>${r.available ? '✅' : '❌'}</td>
-                  <td>
-                    <button class="status-select" data-id="${r.id}" data-avail="${r.available}" onclick="toggleAvail(this)">Toggle</button>
-                  </td>
+                  <td><button class="status-select" data-id="${r.id}" data-avail="${r.available}" onclick="toggleAvail(this)">Toggle</button></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -514,21 +494,15 @@
       const id = btn.dataset.id;
       const current = btn.dataset.avail === 'true';
       try {
-        await api(`/admin/menu-items/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify({ is_available: !current }),
-        });
+        await api(`/admin/menu-items/${id}`, { method: 'PUT', body: JSON.stringify({ is_available: !current }) });
         toast('Item updated');
         loadMenuTable();
-      } catch (e) {
-        toast(e.message, true);
-      }
+      } catch (e) { toast(e.message, true); }
     };
 
     document.getElementById('add-item-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const tags = document.getElementById('item-tags').value
-        .split(',').map(t => t.trim()).filter(Boolean);
+      const tags = document.getElementById('item-tags').value.split(',').map(t => t.trim()).filter(Boolean);
       try {
         await api('/admin/menu-items', {
           method: 'POST',
@@ -546,12 +520,9 @@
         toast('Item added');
         e.target.reset();
         loadMenuTable();
-      } catch (e) {
-        toast(e.message, true);
-      }
+      } catch (e) { toast(e.message, true); }
     });
 
-    // ---------- HOURS ----------
     async function loadHours() {
       const wrap = document.getElementById('hours-wrap');
       try {
@@ -573,9 +544,7 @@
             </tbody>
           </table>
         `;
-      } catch (e) {
-        wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`;
-      }
+      } catch (e) { wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`; }
     }
 
     window.saveHours = async function(dow) {
@@ -593,18 +562,14 @@
           }),
         });
         toast('Hours updated');
-      } catch (e) {
-        toast(e.message, true);
-      }
+      } catch (e) { toast(e.message, true); }
     };
 
-    // ---------- RESERVATIONS ----------
     async function loadReservations() {
       const wrap = document.getElementById('reservations-wrap');
       try {
         const rows = await api('/admin/reservations');
         if (!rows.length) { wrap.innerHTML = '<p class="empty">No reservations yet.</p>'; return; }
-
         wrap.innerHTML = `
           <table class="data-table">
             <thead><tr><th>Date</th><th>Time</th><th>Guest</th><th>Party</th><th>Status</th><th>Change</th></tr></thead>
@@ -631,32 +596,23 @@
             </tbody>
           </table>
         `;
-      } catch (e) {
-        wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`;
-      }
+      } catch (e) { wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`; }
     }
 
     window.updateResStatus = async function(id, status) {
       if (!status) return;
       try {
-        await api(`/admin/reservations/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status }),
-        });
+        await api(`/admin/reservations/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
         toast('Reservation updated');
         loadReservations();
-      } catch (e) {
-        toast(e.message, true);
-      }
+      } catch (e) { toast(e.message, true); }
     };
 
-    // ---------- ORDERS ----------
     async function loadOrders() {
       const wrap = document.getElementById('orders-wrap');
       try {
         const rows = await api('/admin/orders');
         if (!rows.length) { wrap.innerHTML = '<p class="empty">No orders yet.</p>'; return; }
-
         wrap.innerHTML = `
           <table class="data-table">
             <thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Change</th></tr></thead>
@@ -666,7 +622,7 @@
                   <td><strong>${o.order_number}</strong><br><small>${new Date(o.created_at).toLocaleString()}</small></td>
                   <td>${o.full_name}<br><small style="color:var(--muted)">${o.phone}<br>${o.fulfillment}</small></td>
                   <td><small>${o.items.map(i => `${i.quantity}× ${i.item_name}`).join('<br>')}</small></td>
-                  <td>$${Number(o.total).toFixed(2)}</td>
+                  <td>KES ${Number(o.total).toFixed(2)}</td>
                   <td><span class="status-pill status-${o.status}">${o.status}</span></td>
                   <td>
                     <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
@@ -684,26 +640,18 @@
             </tbody>
           </table>
         `;
-      } catch (e) {
-        wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`;
-      }
+      } catch (e) { wrap.innerHTML = `<p class="empty">Error: ${e.message}</p>`; }
     }
 
     window.updateOrderStatus = async function(id, status) {
       if (!status) return;
       try {
-        await api(`/admin/orders/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status }),
-        });
+        await api(`/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
         toast('Order updated');
         loadOrders();
-      } catch (e) {
-        toast(e.message, true);
-      }
+      } catch (e) { toast(e.message, true); }
     };
 
-    // ---------- BOOT ----------
     checkSession();
   </script>
 </body>
